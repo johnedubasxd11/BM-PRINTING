@@ -32,6 +32,14 @@ export const GoogleAuthOption = ({ disabled = false, onLoadingChange, onError, v
     }
   };
 
+  if (!isSupabaseConfigured()) {
+    return (
+      <p className="bm-auth-hint" role="status">
+        Google sign-in is not available on this site yet.
+      </p>
+    );
+  }
+
   return (
     <>
       <div className="bm-auth-divider">

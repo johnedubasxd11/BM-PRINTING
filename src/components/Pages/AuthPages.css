@@ -466,11 +466,37 @@
 
 .bm-turnstile-wrap {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
   min-height: 65px;
   justify-content: center;
   overflow: hidden;
   margin: 12px auto 0;
+}
+
+.bm-turnstile-status {
+  width: 100%;
+  margin-top: 6px;
+  color: #8f1528;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.bm-turnstile-status p {
+  margin: 2px 0;
+}
+
+.bm-turnstile-troubleshoot {
+  margin: 6px auto 0;
+  padding: 8px 12px 8px 26px;
+  max-width: 420px;
+  border: 1px solid #e3d2d6;
+  border-radius: 8px;
+  background: #faf6f7;
+  color: #4a4e52;
+  text-align: left;
 }
 
 .bm-turnstile-widget {
