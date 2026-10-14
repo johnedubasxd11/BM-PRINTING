@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { OrderDesignFiles } from '../Common/OrderDesignFiles';
 import { ProductionProgress } from '../Common/ProductionProgress';
 import { store } from '../../utils/storage';
+import { apiFetch } from '../../utils/apiBase';
 import { Btn } from '../Common/Btn';
 import { Badge } from '../Common/Badge';
 import { Input } from '../Common/Input';
@@ -51,7 +52,7 @@ export const MyOrdersPage = ({ user, setPage, showToast }) => {
           token = data.session?.access_token || '';
         } else if (!token) token = (await store.get('session'))?.token || '';
         if (!token) throw new Error('Please login to view your orders.');
-        const response = await fetch('/api/customers/orders', { headers: { Authorization: `Bearer ${token}` } });
+        const response = await apiFetch('/api/customers/orders', { headers: { Authorization: `Bearer ${token}` } });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || 'Unable to load your orders.');
         if (active) { setMyOrders(Array.isArray(data.orders) ? data.orders : []); setOrdersError(''); }

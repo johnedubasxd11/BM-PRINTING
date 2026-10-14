@@ -1,7 +1,5 @@
 import { store } from './storage';
-
-const apiBase = String(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-const apiUrl = url => /^https?:\/\//i.test(url) ? url : `${apiBase}${url.startsWith('/') ? url : `/${url}`}`;
+import { apiUrl } from './apiBase';
 
 async function getAuthToken(user) {
   let token = user?.token || '';
@@ -22,9 +20,14 @@ async function getAuthToken(user) {
 
 export async function orderRequest(url, options = {}, user) {
   const token = await getAuthToken(user);
-  const response = await fetch(apiUrl(url), { ...options, headers: {
-    'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers
-  } });
+  let response;
+  try {
+    response = await fetch(apiUrl(url), { ...options, headers: {
+      'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers
+    } });
+  } catch {
+    throw new Error('Cannot reach the server. Check your connection and try again.');
+  }
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     const details = data.fields ? Object.values(data.fields).join(' ') : '';
@@ -41,7 +44,12 @@ export async function orderApi(url, options = {}, user) {
 
 export async function orderFileApi(url, user) {
   const token = await getAuthToken(user);
-  const response = await fetch(apiUrl(url), { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  let response;
+  try {
+    response = await fetch(apiUrl(url), { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  } catch {
+    throw new Error('Cannot reach the server. Check your connection and try again.');
+  }
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     throw new Error(data.error || `File request failed (${response.status}).`);

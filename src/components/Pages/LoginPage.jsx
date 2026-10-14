@@ -1,10 +1,10 @@
 import { signInAccount } from '../../utils/authActions';
 import React, { useState } from 'react';
 import { store } from '../../utils/storage';
+import { apiFetch } from '../../utils/apiBase';
+import { isSupabaseConfigured } from '../../utils/supabaseConfig';
 import { GoogleAuthOption } from '../Common/GoogleAuthOption';
 import { PhoneOtpPanel } from '../Common/PhoneOtpPanel';
-import { TurnstileWidget } from '../Common/TurnstileWidget';
-import { turnstileStatusMessage, verifyTurnstileToken } from '../../utils/turnstile';
 import './AuthPages.css';
 import { publicAsset } from '../../utils/assets';
 import { BMLogo } from '../Common/BMLogo';
@@ -17,28 +17,13 @@ export const LoginPage = ({ setPage, onLogin, showToast }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState('');
-  const [turnstileStatus, setTurnstileStatus] = useState('loading');
-  const [turnstileResetSignal, setTurnstileResetSignal] = useState(0);
-
-  const verifySecurity = async () => {
-    if (!turnstileToken) throw new Error(turnstileStatusMessage(turnstileStatus));
-    try {
-      await verifyTurnstileToken(turnstileToken);
-    } finally {
-      setTurnstileToken('');
-      setTurnstileResetSignal(signal => signal + 1);
-    }
-  };
 
   const login = async () => {
     setErrorMessage('');
     setLoading(true);
     try {
-      await verifySecurity();
-      const { supabase } = await import('../../utils/supabaseClient');
-      const user = await signInAccount(supabase, email, pass, async () => {
-        const response = await fetch('/api/auth/login', {
+      const legacyLogin = async () => {
+        const response = await apiFetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password: pass })
@@ -47,6 +32,9 @@ export const LoginPage = ({ setPage, onLogin, showToast }) => {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('The server is not available on this site. Please try again later or contact the shop.');
+          }
           throw new Error(data.error || 'Invalid email or password.');
         }
 
@@ -55,7 +43,14 @@ export const LoginPage = ({ setPage, onLogin, showToast }) => {
         }
 
         return { ...data.user, token: data.token, authProvider: 'jwt' };
-      });
+      };
+      let user;
+      if (isSupabaseConfigured()) {
+        const { supabase } = await import('../../utils/supabaseClient');
+        user = await signInAccount(supabase, email, pass, legacyLogin);
+      } else {
+        user = await legacyLogin();
+      }
       if (user.authProvider === 'supabase') await store.del('session');
       else await store.set('session', user);
       onLogin?.(user);
@@ -167,12 +162,6 @@ export const LoginPage = ({ setPage, onLogin, showToast }) => {
           </div>
         </div>
 
-        <TurnstileWidget
-          resetSignal={turnstileResetSignal}
-          onTokenChange={setTurnstileToken}
-          onStatusChange={setTurnstileStatus}
-        />
-
         {errorMessage && <p className="bm-auth-error" role="alert">{errorMessage}</p>}
 
         <button
@@ -193,7 +182,6 @@ export const LoginPage = ({ setPage, onLogin, showToast }) => {
 
         <GoogleAuthOption
           disabled={loading}
-          verifySecurity={verifySecurity}
           onLoadingChange={setGoogleLoading}
           onError={error => showToast?.(error.message || 'Unable to connect with Google. Please try again.', 'error')}
         />

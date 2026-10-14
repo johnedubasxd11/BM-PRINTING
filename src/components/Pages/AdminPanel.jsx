@@ -3,6 +3,7 @@ import { ArchivedOrders, CompletedOrdersReport } from './AdminOrderArchive';
 import { InventoryMaterials } from './InventoryMaterials';
 import { ORDER_STATUSES, displayOrderStatus } from '../../../shared/orderWorkflow';
 import { orderApi } from '../../utils/orderApi';
+import { apiFetch } from '../../utils/apiBase';
 import { publicAsset } from '../../utils/assets';
 import { store } from '../../utils/storage';
 import { StaffOrders } from './StaffOrders';
@@ -371,7 +372,7 @@ export default function AdminPanel({ user, showToast: notify, onLogout }) {
         ? `${reportDate.getFullYear()}-${String(reportDate.getMonth()+1).padStart(2,'0')}-${String(reportDate.getDate()).padStart(2,'0')}`
         : String(reportDate);
       const token = await getToken();
-      const response = await fetch(`/api/admin/reports/orders/${ds}/download`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const response = await apiFetch(`/api/admin/reports/orders/${ds}/download`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
         throw new Error(err.error || `Download failed (HTTP ${response.status})`);

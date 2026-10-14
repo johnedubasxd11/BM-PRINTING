@@ -1,6 +1,7 @@
 import { authCallbackUrl } from '../../utils/authReturn';
 import { registerCustomer } from '../../utils/authActions';
 import React, { useState } from 'react';
+import { isSupabaseConfigured } from '../../utils/supabaseConfig';
 import { supabaseAppUser } from '../../../shared/roles';
 import { store } from '../../utils/storage';
 import { GoogleAuthOption } from '../Common/GoogleAuthOption';
@@ -61,6 +62,9 @@ export const RegisterPage = ({ setPage, onLogin, showToast: notify }) => {
     setLoading(true);
     try {
       await verifySecurity();
+      if (!isSupabaseConfigured()) {
+        throw new Error('Online registration is unavailable because the account service is not configured for this site.');
+      }
       const { supabase } = await import('../../utils/supabaseClient');
       const data = await registerCustomer(supabase, form, authCallbackUrl());
       await store.del('session');

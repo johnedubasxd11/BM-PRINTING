@@ -2,7 +2,14 @@ import { supabaseAppUser } from '../../shared/roles';
 import { normalizePhoneNumber, phoneOtpErrorMessage, PHONE_OTP_ERRORS } from './phoneAuth';
 
 export async function signInAccount(client, email, password, legacyLogin) {
-  const { data, error } = await client.auth.signInWithPassword({ email: email.trim(), password });
+  let result;
+  try {
+    result = await client.auth.signInWithPassword({ email: email.trim(), password });
+  } catch {
+    // Network/DNS/CORS failure reaching the provider — not a credential answer.
+    throw new Error('Could not reach the sign-in service. Check your internet connection and try again.');
+  }
+  const { data, error } = result;
   if (!error && data.user) return supabaseAppUser(data.user);
   // Only legacy credentials may fall back. Never bypass MFA, unconfirmed email,
   // rate limits or a provider outage via the compatibility endpoint.
@@ -11,11 +18,17 @@ export async function signInAccount(client, email, password, legacyLogin) {
 }
 
 export async function registerCustomer(client, form, redirectTo) {
-  const { data, error } = await client.auth.signUp({
-    email: form.email.trim(), password: form.password,
-    options: { emailRedirectTo: redirectTo,
-      data: { full_name: form.name.trim(), phone: (form.phone || '').trim() } }
-  });
+  let result;
+  try {
+    result = await client.auth.signUp({
+      email: form.email.trim(), password: form.password,
+      options: { emailRedirectTo: redirectTo,
+        data: { full_name: form.name.trim(), phone: (form.phone || '').trim() } }
+    });
+  } catch {
+    throw new Error('Could not reach the account service. Check your internet connection and try again.');
+  }
+  const { data, error } = result;
   if (error) throw error;
   return data;
 }

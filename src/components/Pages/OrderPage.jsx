@@ -3,6 +3,7 @@ import { C } from "../../constants/colors";
 import { PRODUCTS } from "../../constants/products";
 import { PAYMENT_METHODS } from "../../constants/paymentMethods";
 import { orderApi } from "../../utils/orderApi";
+import { apiFetch } from "../../utils/apiBase";
 import { publicAsset } from "../../utils/assets";
 import { catalogSource } from "../../utils/catalogSource";
 import { generateId } from "../../utils/helpers";
@@ -306,7 +307,7 @@ export const OrderPage = ({ user, selectedProduct, setPage, addOrder, showToast 
     let cancelled = false;
     const loadActiveProducts = async () => {
       try {
-        const response = await fetch("/api/products");
+        const response = await apiFetch("/api/products");
         if (!response.ok) return;
         const data = await response.json();
         const source = catalogSource(data, PRODUCTS);

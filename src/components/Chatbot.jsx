@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BMLogo } from './Common/BMLogo';
 import { BM_CONTACT } from '../constants/contact';
+import { apiFetch } from '../utils/apiBase';
 import './Chatbot.css';
 
 const WELCOME_MESSAGE = "Hi! I'm the BM Printing Assistant. How can I help you today?";
@@ -94,7 +95,7 @@ export function Chatbot({ setPage }) {
     sendingRef.current = true;
     setIsSending(true);
     try {
-      const response = await fetch('/api/chat', {
+      const response = await apiFetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message })

@@ -36,9 +36,10 @@ describe('Vercel deployment routing configuration', () => {
     expect(apiRequestNeedsMongo('/api/auth/login')).toBe(true);
   });
 
-  test('renders one shared Turnstile widget on each email authentication page', () => {
+  test('renders no Turnstile widget on the login page and one on registration', () => {
     const source = file => readFileSync(path.join(process.cwd(), file), 'utf8');
-    expect(source('src/components/Pages/LoginPage.jsx').match(/<TurnstileWidget/g)).toHaveLength(1);
+    expect(source('src/components/Pages/LoginPage.jsx').match(/<TurnstileWidget/g) || []).toHaveLength(0);
+    expect(source('src/components/Common/PhoneOtpPanel.jsx').match(/<TurnstileWidget/g) || []).toHaveLength(0);
     expect(source('src/components/Pages/RegisterPage.jsx').match(/<TurnstileWidget/g)).toHaveLength(1);
     expect(source('src/components/Common/GoogleAuthOption.jsx')).not.toContain('<TurnstileWidget');
   });

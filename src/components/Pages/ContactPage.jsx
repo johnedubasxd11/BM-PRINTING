@@ -7,6 +7,7 @@ import { BM_CONTACT } from "../../constants/contact";
 import "./ContactPage.css";
 import { publicAsset } from '../../utils/assets';
 import { turnstileStatusMessage } from '../../utils/turnstile';
+import { apiFetch } from '../../utils/apiBase';
 
 // Turns a backend response into actionable copy. Without this, every failure
 // mode (server down, missing route, rate limit, rejected Turnstile, validation)
@@ -89,7 +90,7 @@ export const ContactPage = ({ showToast, user }) => {
         }
       }
 
-      const response = await fetch("/api/contact/messages", {
+      const response = await apiFetch("/api/contact/messages", {
         method: "POST",
         headers,
         body: JSON.stringify({

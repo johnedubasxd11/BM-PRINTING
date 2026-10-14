@@ -6,6 +6,7 @@ import { Btn } from "../Common/Btn";
 import "./ProductsPage.css";
 import { publicAsset } from '../../utils/assets';
 import { catalogSource } from '../../utils/catalogSource';
+import { apiFetch } from '../../utils/apiBase';
 
 const REMOVED_PRODUCT_NAMES = new Set([
   "Tote Bag Printing",
@@ -25,7 +26,7 @@ export const ProductsPage = ({ setPage, setSelectedProduct }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products");
+        const response = await apiFetch("/api/products");
         if (response.ok) {
           const data = await response.json();
           const source = catalogSource(data, PRODUCTS);
