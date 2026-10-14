@@ -44,7 +44,10 @@ export async function verifyTurnstileServerToken(
   if (typeof token !== 'string' || !token.trim()) {
     return { ok: false, status: 400, message: 'Please complete the security verification.' };
   }
-  if (!secret) return unavailable;
+  if (!secret) {
+    console.error('[Turnstile] Verification unavailable: TURNSTILE_SECRET_KEY is not configured.');
+    return unavailable;
+  }
 
   try {
     const result = await verifyToken(token.trim(), secret);
@@ -52,7 +55,10 @@ export async function verifyTurnstileServerToken(
       if (expectedHostnames.length && !expectedHostnames.includes(String(result.hostname || '').toLowerCase())) {
         return { ok: false, status: 400, message: 'Security verification failed. Please try again.' };
       }
-      if (process.env.NODE_ENV === 'production' && !expectedHostnames.length) return unavailable;
+      if (process.env.NODE_ENV === 'production' && !expectedHostnames.length) {
+        console.error('[Turnstile] Verification unavailable: TURNSTILE_HOSTNAMES is not configured for production.');
+        return unavailable;
+      }
       return { ok: true };
     }
     return { ok: false, status: 400, message: 'Security verification failed. Please try again.' };

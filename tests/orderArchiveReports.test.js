@@ -8,7 +8,15 @@ import orderArchiveRoutes from '../server/routes/orderArchives.js';
 
 jest.mock('../server/utils.js', () => ({
   safeText: value => typeof value === 'string' ? value : '',
-  serializeOrder: order => order.serialize(),
+  // Mirrors the real serializer's plain-property contract (server/utils.js);
+  // the route spreads this result and layers archive fields on top.
+  serializeOrder: order => ({
+    id: order.orderId,
+    orderId: order.orderId,
+    status: order.status,
+    customer: order.customerName,
+    total: order.totalAmount
+  }),
   uploadDesignFile: jest.fn()
 }));
 
@@ -180,7 +188,13 @@ describe('Phase 6 order archive and completion reports', () => {
     expect(outside.body.completedOrders).toBe(0);
     expect(outside.body.rows).toHaveLength(0);
 
-    const exported = await request(app).get('/api/admin/reports/completed-orders/export?from=2026-10-01&to=2026-10-31').set(auth('admin'));
+    const exported = await request(app).get('/api/admin/reports/completed-orders/export?from=2026-10-01&to=2026-10-31').set(auth('admin'))
+      .buffer(true)
+      .parse((res, callback) => {
+        const chunks = [];
+        res.on('data', chunk => chunks.push(chunk));
+        res.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
     expect(exported.status).toBe(200);
     expect(exported.headers['content-type']).toContain('spreadsheetml.sheet');
     expect(exported.headers['content-disposition']).toContain('BM_Printing_Completed_Orders_2026-10-01_to_2026-10-31.xlsx');

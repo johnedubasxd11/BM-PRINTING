@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 
 const TURNSTILE_SCRIPT_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-const TURNSTILE_DEVELOPMENT_SITE_KEY = '1x00000000000000000000AA';
+// Cloudflare's documented always-pass test site key (pairs with the always-pass
+// test secret used server-side when TURNSTILE_USE_TEST_KEYS=true). Dev only.
+const TURNSTILE_DEVELOPMENT_SITE_KEY = '1x0000000000000000000000000000000AA';
 const TURNSTILE_SITE_KEY = import.meta.env.DEV && import.meta.env.VITE_TURNSTILE_USE_TEST_KEYS === 'true'
   ? TURNSTILE_DEVELOPMENT_SITE_KEY
   : import.meta.env.VITE_TURNSTILE_SITE_KEY || '';

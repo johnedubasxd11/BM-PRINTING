@@ -1,9 +1,11 @@
+# WARNING: This workflow publishes a FRONTEND-ONLY copy of the site to GitHub
+# Pages. Pages cannot run the Express backend, so /api/* (including Turnstile
+# verification, login, and orders) returns 404 there and users can never sign
+# in. The supported host is Vercel (see VERCEL_DEPLOYMENT.md). This workflow is
+# therefore manual-only (workflow_dispatch); it does not run on push to main.
 name: Deploy Vite site to Pages
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:

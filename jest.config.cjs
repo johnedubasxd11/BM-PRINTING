@@ -5,6 +5,13 @@ module.exports = {
   },
   testMatch: ['**/tests/**/*.test.js'],
   moduleFileExtensions: ['js', 'mjs', 'cjs', 'json'],
+  // mongodb-memory-server nests its own mongodb driver, which sends a client
+  // metadata document that MongoDB >= 8.x rejects under Jest (handshake fails
+  // with ClientMetadataMissingField). Force every sandboxed require of
+  // "mongodb" to the project's pinned driver so replica-set test setup works.
+  moduleNameMapper: {
+    '^mongodb$': '<rootDir>/node_modules/mongodb'
+  },
   collectCoverageFrom: ['server/**/*.js', '!server/data/**'],
   coverageDirectory: 'coverage',
   verbose: true,

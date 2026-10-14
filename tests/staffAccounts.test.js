@@ -14,7 +14,7 @@ import { signInAccount, registerCustomer } from '../src/utils/authActions.js';
 
 jest.mock('../server/utils.js', () => ({ safeText: value => typeof value === 'string' ? value : '' }));
 
-let app, directory, originalFetch, oldUrl, oldKey, adminToken;
+let app, directory, originalFetch, oldUrl, oldKey, oldLegacyRegistration, adminToken;
 const users = {
   customer: { id: 'customer-a', email: 'a@example.com', app_metadata: { role: 'customer' } },
   other: { id: 'customer-b', email: 'b@example.com' },
@@ -27,6 +27,8 @@ beforeAll(async () => {
   directory = await fs.mkdtemp(path.join(os.tmpdir(), 'bm-files-test-'));
   originalFetch = global.fetch;
   oldUrl = process.env.SUPABASE_URL; oldKey = process.env.SUPABASE_ANON_KEY;
+  oldLegacyRegistration = process.env.ALLOW_LEGACY_REGISTRATION;
+  process.env.ALLOW_LEGACY_REGISTRATION = 'true';
   process.env.SUPABASE_URL = 'https://supabase.test'; process.env.SUPABASE_ANON_KEY = 'public-test-key';
   global.fetch = jest.fn(async (url, options) => {
     const user = users[options.headers.Authorization.replace('Bearer ', '')];
@@ -41,6 +43,7 @@ afterAll(async () => {
   global.fetch = originalFetch;
   if (oldUrl === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = oldUrl;
   if (oldKey === undefined) delete process.env.SUPABASE_ANON_KEY; else process.env.SUPABASE_ANON_KEY = oldKey;
+  if (oldLegacyRegistration === undefined) delete process.env.ALLOW_LEGACY_REGISTRATION; else process.env.ALLOW_LEGACY_REGISTRATION = oldLegacyRegistration;
   // Remove only this test's verified temp directory.
   if (path.dirname(directory) !== os.tmpdir() || !path.basename(directory).startsWith('bm-files-test-')) throw new Error('Unexpected test directory');
   await fs.rm(directory, { recursive: true, force: true });

@@ -109,6 +109,9 @@ test('shared client verifier accepts only successful backend responses', async (
   global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 400, json: async () => ({ success: false }) });
   await expect(verifyTurnstileToken('invalid-token')).rejects.toThrow(TURNSTILE_ERRORS.failed);
 
+  global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 429, json: async () => ({ success: false, error: 'Too many verification attempts.' }) });
+  await expect(verifyTurnstileToken('temporary-token')).rejects.toThrow(TURNSTILE_ERRORS.rateLimited);
+
   global.fetch = jest.fn().mockRejectedValue(new Error('network unavailable'));
   await expect(verifyTurnstileToken('temporary-token')).rejects.toThrow(TURNSTILE_ERRORS.unavailable);
 });
